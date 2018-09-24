@@ -1,7 +1,8 @@
-const config = require("./config.json");
+const botconfig = require("./botconfig.json");
 const Discord = require("discord.js");
 const fs = require("fs");
 const bot = new Discord.Client({disableEveryone: true});
+let xp = require("./xp.json");
 bot.commands = new Discord.Collection();
 
 
@@ -49,17 +50,58 @@ bot.on("guildMemberRemove", async member => {
 
 //Example echo command. Will echo everything after the prefix "!"
 bot.on("message", async message => {
+
   if(message.author.bot) return;
   if(message.channel.type === "dm") return;
 
-  let prefix = config.prefix;
+  let prefixes = JSON.parse(fs.readFileSync("./prefixes.json", "utf8"));
+  if(!prefixes[message.guild.id]){
+    prefixes[message.guild.id] = {
+      prefixes: botconfig.prefix
+    };
+  }
+
+  //XP SYSTEM START
+  let xpAdd = Math.floor(Math.random() * 7) + 8;
+  console.log(xpAdd);
+
+  if(!xp[message.author.id]){
+    xp[message.author.id] = {
+      xp: 0,
+      level: 1
+    };
+  }
+
+
+  let curxp = xp[message.author.id].xp;
+  let curlvl = xp[message.author.id].level;
+  // let curLvlInc = xp[message.author.id].level +1;
+  let nxtLvl = xp[message.author.id].level * 300;
+  xp[message.author.id].xp =  curxp + xpAdd;
+  if(nxtLvl <= xp[message.author.id].xp){
+    xp[message.author.id].level = curlvl + 1;
+    let lvlup = new Discord.RichEmbed()
+    .setTitle("Level Up!")
+    .setColor("#42f4a1")
+    .addField("New Level", curlvl + 1);
+  // if (curLvlInc) {
+  //   let gRole = message.guild.roles.find(`name`, admin);
+  // }
+  message.channel.send(lvlup);
+  }
+  fs.writeFile("./xp.json", JSON.stringify(xp), (err) => {
+    if(err) console.log(err)
+  });
+
+  let prefix = prefixes[message.guild.id].prefixes;
   let messageArray = message.content.split(" ");
   let cmd = messageArray[0];
   let args = messageArray.slice(1);
 
   let commandfile = bot.commands.get(cmd.slice(prefix.length));
-  if (commandfile) commandfile.run(bot,message,args)
+  if(commandfile) commandfile.run(bot,message,args);
+
 
 });
 
-bot.login(config.token);
+bot.login(botconfig.token);
