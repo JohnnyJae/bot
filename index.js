@@ -28,6 +28,25 @@ bot.on("ready", async () => {
   bot.user.setActivity("over you", {type: "WATCHING"});
 });
 
+bot.on("guildMemberAdd", async member =>{
+  console.log(`${member.id} joined the server.`);
+
+  let welcomechannel = member.guild.channels.find(`name`, "general");
+  let welcomeMessage = [`OH SHIT! ${member} is here!`, `OH DAMN! ${member} is here!`];
+  let welcomeRandom = welcomeMessage[(Math.Floor(Math.random() * welcomeMessage.length))];
+  welcomechannel.send(welcomeRandom);
+
+});
+
+bot.on("guildMemberRemove", async member => {
+
+  console.log(`${member.id} has left the server.`);
+
+  let welcomechannel = member.guild.channels.find(`name`, "general");
+  welcomechannel.send(`OH SHIT! ${member} is here!`);
+
+});
+
 //Example echo command. Will echo everything after the prefix "!"
 bot.on("message", async message => {
   if(message.author.bot) return;
